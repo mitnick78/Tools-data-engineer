@@ -1,73 +1,67 @@
-# React + TypeScript + Vite
+# Airflow DAG Generator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web tool to generate production-ready Apache Airflow DAGs from a simple form — no boilerplate, just working Python code.
 
-Currently, two official plugins are available:
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **3 DAG types** — ELT, API, Purge
+- **6 cron presets** + custom expression with live validation
+- **Editable task functions** — write your own Python logic in-browser
+- **Live preview** — syntax-highlighted Python code
+- **Export** — download as `.py` or copy to clipboard
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting started
 
-## Expanding the ESLint configuration
+```bash
+# Install dependencies
+npm install
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# Start dev server (http://localhost:5173)
+npm run dev
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Build for production
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Tech stack
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **React 19** + **TypeScript** — type-safe component architecture
+- **Vite** — instant dev server and optimized builds
+- **Tailwind CSS v4** — utility-first styling
+- **React Router v7** — client-side routing with lazy loading
+- **Framer Motion** — animations
+- **Lucide React** — icons
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Project structure
+
 ```
+src/
+├── app/                      # App-level config (routing)
+├── pages/                    # Route shells — no business logic
+│   └── tools/
+├── features/                 # Feature-based modules
+│   └── dag-generator/
+│       ├── components/       # UI components
+│       ├── constants/        # Presets, templates
+│       ├── hooks/            # State management
+│       ├── services/         # Code generation
+│       │   └── templates/    # One file per DAG type
+│       ├── types/            # TypeScript contracts
+│       └── utils/            # Cron validation, sanitizers...
+└── lib/                      # Shared utilities
+```
+
+## Roadmap
+
+- [x] DAG Generator (ELT, API, Purge)
+- [ ] Pipeline Builder — visual multi-step designer
+- [ ] Schema Validator — JSON / Avro / Parquet validation
+
+## License
+
+MIT

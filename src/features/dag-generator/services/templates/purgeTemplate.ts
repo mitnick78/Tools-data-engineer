@@ -1,29 +1,55 @@
+import type { TemplateOptions } from "@/features/dag-generator/types";
+import { indentBlock } from "@/features/dag-generator/utils/sanitizers";
+
 export function generatePurgeDag({
   dagId,
   schedule,
   retries,
   email,
   fnBodies,
-}): string {
-  const [identifyFn, archiveFn, deleteFn] = fnBodies;
+}: TemplateOptions): string {
+  const [identifyBody = "", archiveBody = "", deleteBody = ""] = fnBodies;
 
-  return `
-# Type : Purge (Identify → Archive → Delete)
+  const identifyFn = `def identify_records():\n${identifyBody}`;
+  const archiveFn = `def archive_records():\n${archiveBody}`;
+  const deleteFn = `def delete_records():\n${deleteBody}`;
 
-${identifyFn}   ← SELECT ids WHERE created_at < NOW()-90j
-${archiveFn}    ← copie vers cold storage
-${deleteFn}     ← DELETE — CAUTION: archive doit réussir
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
 
+  return `from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime
+ 
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'retries': ${retries},
+    'email': ['${email}']
+}
+ 
 with DAG(
-    dag_id="${dagId}",
-    tags=["purge", "maintenance"],
-    ...
+    dag_id='${dagId}',
+    default_args=default_args,
+    schedule_interval='${schedule}',
+    start_date=datetime(${year}, ${month}, ${day}),
+    catchup=False,
+    tags=['purge', 'maintenance']
 ) as dag:
-    t_identify = PythonOperator(task_id="identify_records", ...)
-    t_archive  = PythonOperator(task_id="archive_records", ...)
-    t_delete   = PythonOperator(task_id="delete_records", ...)
-
+ 
+${indentBlock(identifyFn, 4)}
+ 
+${indentBlock(archiveFn, 4)}
+ 
+${indentBlock(deleteFn, 4)}
+ 
+    identify_task = PythonOperator(task_id='identify_records', python_callable=identify_records)
+    archive_task = PythonOperator(task_id='archive_records', python_callable=archive_records)
+    delete_task = PythonOperator(task_id='delete_records', python_callable=delete_records)
+ 
     # Archive MUST succeed before deletion
-    t_identify >> t_archive >> t_delete
+    identify_task >> archive_task >> delete_task
 `;
 }

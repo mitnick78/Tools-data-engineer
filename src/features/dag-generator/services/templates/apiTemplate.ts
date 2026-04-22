@@ -1,30 +1,54 @@
+import type { TemplateOptions } from "@/features/dag-generator/types";
+import { indentBlock } from "@/features/dag-generator/utils/sanitizers";
+
 export function generateApiDag({
   dagId,
   schedule,
   retries,
   email,
   fnBodies,
-}): string {
-  const [fetchFn, processFn, storeFn] = fnBodies;
+}: TemplateOptions): string {
+  const [fetchBody = "", processBody = "", storeBody = ""] = fnBodies;
 
-  return `
-# Type : API (Fetch → Process → Store)
+  const fetchFn = `def fetch_data():\n${fetchBody}`;
+  const processFn = `def process_response():\n${processBody}`;
+  const storeFn = `def store_results():\n${storeBody}`;
 
-...imports...
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
 
-${fetchFn}
-${processFn}
-${storeFn}
-
+  return `from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime
+ 
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'retries': ${retries},
+    'email': ['${email}']
+}
+ 
 with DAG(
-    dag_id="${dagId}",
-    tags=["api", "ingestion"],
-    ...
+    dag_id='${dagId}',
+    default_args=default_args,
+    schedule_interval='${schedule}',
+    start_date=datetime(${year}, ${month}, ${day}),
+    catchup=False,
+    tags=['api', 'ingestion']
 ) as dag:
-    t_fetch   = PythonOperator(task_id="fetch_data", ...)
-    t_process = PythonOperator(task_id="process_response", ...)
-    t_store   = PythonOperator(task_id="store_results", ...)
-
-    t_fetch >> t_process >> t_store
+ 
+${indentBlock(fetchFn, 4)}
+ 
+${indentBlock(processFn, 4)}
+ 
+${indentBlock(storeFn, 4)}
+ 
+    fetch_task = PythonOperator(task_id='fetch_data', python_callable=fetch_data)
+    process_task = PythonOperator(task_id='process_response', python_callable=process_response)
+    store_task = PythonOperator(task_id='store_results', python_callable=store_results)
+ 
+    fetch_task >> process_task >> store_task
 `;
 }

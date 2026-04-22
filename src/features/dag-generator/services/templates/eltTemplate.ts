@@ -1,4 +1,5 @@
-import type { TemplateOptions } from "../dagCodeGenerator";
+import type { TemplateOptions } from "@/features/dag-generator/types";
+import { indentBlock } from "@/features/dag-generator/utils/sanitizers";
 
 export function generateEltDag({
   dagId,
@@ -42,12 +43,4 @@ ${indentBlock(loadFn, 4)}
 
     extract_task >> transform_task >> load_task
 `;
-}
-
-function indentBlock(code: string, spaces: number): string {
-  const indent = " ".repeat(spaces);
-  return code
-    .split("\n")
-    .map((line) => (line.trim() === "" ? "" : indent + line))
-    .join("\n");
 }

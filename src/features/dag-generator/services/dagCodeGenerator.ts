@@ -6,6 +6,7 @@ import { generateApiDag } from "./templates/apiTemplate";
 import { generatePurgeDag } from "./templates/purgeTemplate";
 
 export function generateDagCode(state: DagState): GeneratedDag {
+  console.log("Generating DAG with state:", state);
   const dagId = sanitizer(state.dagName) || "my_dag";
   const schedule =
     state.schedulePreset === "custom" ? state.customCron : state.schedulePreset;
